@@ -17,7 +17,6 @@ function generateRandomString(length) {
   }
   return result;
 };
-//console.log(generateRandomString(6));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -52,16 +51,19 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   console.log(templateVars);
-  //console.log(req.params.shortURL);
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString(6);
+  const shortURL = generateRandomString(6);
   urlDatabase[shortURL] = req.body.longURL;
-
-  console.log(req.body);  // Log the POST request body to the console
-  //res.send("Ok").status(200);         // Respond with 'Ok' (we will replace this)
   res.redirect(`/urls/${shortURL}`);
 
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const short = req.params.shortURL
+  const longURL = urlDatabase[short];
+  console.log(longURL)
+  return res.redirect(longURL);
 });
