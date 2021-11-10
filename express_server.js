@@ -132,7 +132,32 @@ const users = {
   }
 };
 
+const emailLookup = (email) => {
+  let usersKeys = Object.keys(users);
+  // for (let i = 0; i < usersKeys.length; i++) {
+  //   if (users[usersKeys[i]].email === email) {
+  //     return res.status(400).send("Email exists");
+  //   }
+  // }
+  const filtered = usersKeys.filter((key) => {
+    return users[key].email === email;
+  });
+  if (filtered.length > 0) {
+    return true;
+  }
+  return false;
+}
+
 app.post("/register", (req, res) => {
+  if (!req.body.email || !req.body.password) {
+    return res.status(400).send("Please enter email/password");
+  }
+
+  let doesEmailExist = emailLookup(req.body.email);
+  if (doesEmailExist === true) {
+    return res.status(400).send("Email exists");
+  }
+
   const userRandomID = generateRandomString(6);
   users[userRandomID] = {
     id: userRandomID,
