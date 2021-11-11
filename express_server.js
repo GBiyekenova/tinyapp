@@ -35,10 +35,6 @@ const users = {
   }
 };
 
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
 
 const urlDatabase = {
   b6UTxQ: {
@@ -79,11 +75,7 @@ app.get("/urls", (req, res) => {
     if (urlDatabase[key].userID === userID) {
       urls[key] = urlDatabase[key].longURL;
     }
-
   }
-
-
-  //console.log(user);
   const templateVars = { urls: urls, user };//
   res.render("urls_index", templateVars);
 });
@@ -124,9 +116,16 @@ app.post("/urls", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   const short = req.params.shortURL;
-  const longURL = urlDatabase[short];
+  if (!short) {
+    return res.status(400).send("id is not provided");
+  }
+  if (short in urlDatabase) {
+    const longURL = urlDatabase[short].longURL;
+    return res.redirect(longURL);
+  } else {
+    return res.status(403).send("Such id does not exist");
+  }
   //console.log(longURL)
-  res.redirect(longURL);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
