@@ -49,20 +49,20 @@ app.get("/urls", (req, res) => {
     return res.status(400).send("You have to log in");
   }
   const user = users[userID];
-  console.log(user);
+  //console.log(user);
   const templateVars = { urls: urlDatabase, user };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const username = req.cookies['username'];
-  console.log(username);
+  const username = req.cookies['user_id'];//"username"
+  //console.log(username);
   res.render("urls_new", { username });
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { username: req.cookies['username'], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  console.log(templateVars);
+  const templateVars = { username: req.cookies['user_id'], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]}; // cookie was username here
+  //console.log(templateVars);
   res.render("urls_show", templateVars);
 });
 
@@ -85,7 +85,7 @@ app.post("/urls", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const short = req.params.shortURL;
   const longURL = urlDatabase[short];
-  console.log(longURL)
+  //console.log(longURL)
   res.redirect(longURL);
 });
 
@@ -101,13 +101,22 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+  let email = req.body.email;
+  let user = emailLookup(email);
+  console.log(user)
+  if (user.length > 0) {
+    console.log(req.body.password)
+    if (user[0].password !== req.body.password) {
+      return res.status(403).send("password does not match");
+    }
+    return res.cookie("user_id", user[0].id).redirect("/urls");
+  } else {
+    return res.status(403).send("such user does not exist");
+  }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username", req.body.username);
-  res.redirect("/urls");
+  res.clearCookie("user_id").redirect("/urls");
 });
 
 app.get("/register", (req, res) => {
@@ -134,18 +143,20 @@ const users = {
 
 const emailLookup = (email) => {
   let usersKeys = Object.keys(users);
+  let arr = [];
   // for (let i = 0; i < usersKeys.length; i++) {
   //   if (users[usersKeys[i]].email === email) {
   //     return res.status(400).send("Email exists");
   //   }
   // }
   const filtered = usersKeys.filter((key) => {
-    return users[key].email === email;
+    return users[key].email === email
+    
   });
   if (filtered.length > 0) {
-    return true;
+    arr.push(users[filtered[0]])
   }
-  return false;
+  return arr;
 }
 
 app.post("/register", (req, res) => {
@@ -154,7 +165,8 @@ app.post("/register", (req, res) => {
   }
 
   let doesEmailExist = emailLookup(req.body.email);
-  if (doesEmailExist === true) {
+  //console.log(doesEmailExist)
+  if (doesEmailExist.length > 0) {
     return res.status(400).send("Email exists");
   }
 
@@ -164,7 +176,7 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password: req.body.password
   };
-  console.log(users[userRandomID]);
+  //console.log(users[userRandomID]);
   res.cookie("user_id", userRandomID);//"username", req.body.email
   res.redirect("/urls");
 });
