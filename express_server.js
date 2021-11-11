@@ -168,3 +168,8 @@ app.post("/register", (req, res) => {
   res.cookie("user_id", userRandomID);//"username", req.body.email
   res.redirect("/urls");
 });
+
+app.get("/login", (req, res) => {
+  const templateVars = { user: null };
+  res.render("urls_login", templateVars );
+});
