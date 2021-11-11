@@ -47,6 +47,17 @@ const urlDatabase = {
   }
 };
 
+const urlsForUser = userID => {
+  const urls = {};
+  let arrOfKeys = Object.keys(urlDatabase);
+  for(const key of arrOfKeys) {
+    if (urlDatabase[key].userID === userID) {
+      urls[key] = urlDatabase[key].longURL;
+    }
+  }
+  return urls;
+}
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -69,13 +80,14 @@ app.get("/urls", (req, res) => {
     return res.status(400).send("You have to log in");
   }
   const user = users[userID];
-  const urls = {};
-  let arrOfKeys = Object.keys(urlDatabase);
-  for(const key of arrOfKeys) {
-    if (urlDatabase[key].userID === userID) {
-      urls[key] = urlDatabase[key].longURL;
-    }
-  }
+  const urls = urlsForUser(userID);
+  // const urls = {};
+  // let arrOfKeys = Object.keys(urlDatabase);
+  // for(const key of arrOfKeys) {
+  //   if (urlDatabase[key].userID === userID) {
+  //     urls[key] = urlDatabase[key].longURL;
+  //   }
+  // }
   const templateVars = { urls: urls, user };//
   res.render("urls_index", templateVars);
 });
@@ -129,18 +141,29 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  const userID = req.cookies["user_id"];
+  const short = req.params.shortURL;
+  if (urlDatabase[short].userID === userID) {
+
+    delete urlDatabase[short];
+    return res.redirect("/urls");
+  }
+  res.status(403).send("you cannot delete this URL");
 });
 
 app.post("/urls/:id", (req, res) => {
   const userID = req.cookies["user_id"];
-  if (!userID) {
-    return res.redirect("/login");
-  }
+  // if (!userID) {
+  //   return res.redirect("/login");
+  // }
   const short = req.params.id;
-  urlDatabase[short].longURL = req.body.longURL;
-  res.redirect("/urls");
+  if (urlDatabase[short].userID === userID) {
+
+    urlDatabase[short].longURL = req.body.longURL;
+    return res.redirect("/urls");
+  }
+  res.status(403).send("You cannot edit this URL");
+
 });
 
 app.post("/login", (req, res) => {
