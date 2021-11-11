@@ -1,11 +1,12 @@
 const express = require("express");
 const app = express();
 
+const bcrypt = require('bcryptjs');
+
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 var cookieParser = require('cookie-parser');
-
 app.use(cookieParser());
 
 const PORT = 8080; // default port 8080
@@ -171,11 +172,13 @@ app.post("/login", (req, res) => {
   let user = emailLookup(email);
   console.log(user)
   if (user.length > 0) {
-    console.log(req.body.password)
-    if (user[0].password !== req.body.password) {
-      return res.status(403).send("password does not match");
+    //console.log(req.body.password)
+    if (bcrypt.compareSync(req.body.password, user[0].password)) { //(user[0].password !== req.body.password)
+      // return res.status(403).send("password does not match");
+      return res.cookie("user_id", user[0].id).redirect("/urls");
     }
-    return res.cookie("user_id", user[0].id).redirect("/urls");
+    // return res.cookie("user_id", user[0].id).redirect("/urls");
+    return res.status(403).send("password does not match");
   } else {
     return res.status(403).send("such user does not exist");
   }
@@ -221,7 +224,7 @@ app.post("/register", (req, res) => {
   users[userRandomID] = {
     id: userRandomID,
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(req.body.password, 10)
   };
   res.cookie("user_id", userRandomID);
   res.redirect("/urls");
