@@ -55,13 +55,13 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const username = req.cookies['user_id'];//"username"
+  const username = req.cookies['user_id'];
   //console.log(username);
   res.render("urls_new", { username });
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { username: req.cookies['user_id'], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]}; // cookie was username here
+  const templateVars = { username: req.cookies['user_id'], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   //console.log(templateVars);
   res.render("urls_show", templateVars);
 });
@@ -144,11 +144,6 @@ const users = {
 const emailLookup = (email) => {
   let usersKeys = Object.keys(users);
   let arr = [];
-  // for (let i = 0; i < usersKeys.length; i++) {
-  //   if (users[usersKeys[i]].email === email) {
-  //     return res.status(400).send("Email exists");
-  //   }
-  // }
   const filtered = usersKeys.filter((key) => {
     return users[key].email === email
     
@@ -165,7 +160,6 @@ app.post("/register", (req, res) => {
   }
 
   let doesEmailExist = emailLookup(req.body.email);
-  //console.log(doesEmailExist)
   if (doesEmailExist.length > 0) {
     return res.status(400).send("Email exists");
   }
@@ -176,8 +170,7 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password: req.body.password
   };
-  //console.log(users[userRandomID]);
-  res.cookie("user_id", userRandomID);//"username", req.body.email
+  res.cookie("user_id", userRandomID);
   res.redirect("/urls");
 });
 
